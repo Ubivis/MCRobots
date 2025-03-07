@@ -4,6 +4,7 @@ import com.ubivismedia.robots.RobotWeaponType;
 import com.ubivismedia.robots.weapons.MachineGunWeapon;
 import com.ubivismedia.robots.weapons.ExplosiveCannonWeapon;
 import com.ubivismedia.robots.weapons.LaserBeamWeapon;
+import com.ubivismedia.robots.weapons.RocketLauncherWeapon;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -63,7 +64,10 @@ public class WeaponSelectionListener implements Listener {
                 LaserBeamWeapon.fire(player);
                 player.sendMessage(ChatColor.RED + "Firing Laser Beam!");
                 break;
-            // Future case: ROCKET_LAUNCHER
+            case ROCKET_LAUNCHER:
+                RocketLauncherWeapon.fire(player);
+                player.sendMessage(ChatColor.RED + "Firing Rocket Launcher!");
+                break;
         }
 
         event.setCancelled(true); // Prevent unintended jumping
