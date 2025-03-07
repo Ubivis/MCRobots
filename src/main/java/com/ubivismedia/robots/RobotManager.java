@@ -43,6 +43,10 @@ public class RobotManager {
         return robotBlocks;
     }
 
+    public boolean isPlayerInsideRobot(Player player) {
+        return playersInRobot.contains(player);
+    }
+
     public boolean isRobotComplete() {
         int cockpitCount = 0;
         int jointCount = 0;

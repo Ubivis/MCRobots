@@ -2,15 +2,19 @@ package com.ubivismedia.listeners;
 
 import com.ubivismedia.robots.RobotManager;
 import org.bukkit.Material;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.block.Action;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.Vector;
 
 public class RobotBlockListener implements Listener {
 
@@ -82,11 +86,30 @@ public class RobotBlockListener implements Listener {
                 if (robotManager.isRobotComplete()) {
                     robotManager.enterRobot(player);
                     player.sendMessage("§aYou have entered your robot! Use WASD to move and shift to exit.");
+                    player.getWorld().playSound(player.getLocation(), Sound.ENTITY_IRON_GOLEM_STEP, 1.0f, 1.0f);
                 } else {
                     player.sendMessage("§cYour robot is not fully assembled yet!");
                 }
                 event.setCancelled(true);
             }
         }
+    }
+
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent event) {
+        Player player = event.getPlayer();
+        if (robotManager.isPlayerInsideRobot(player)) {  // FIX: Ensure this method exists in RobotManager
+            Vector direction = player.getLocation().getDirection().setY(0).normalize().multiply(0.5);
+            player.setVelocity(direction);
+            player.getWorld().playSound(player.getLocation(), Sound.ENTITY_IRON_GOLEM_STEP, 0.5f, 1.0f);
+            player.getWorld().spawnParticle(Particle.CAMPFIRE_COSY_SMOKE, player.getLocation(), 10, 0.2, 0.1, 0.2, 0.02);
+            player.getWorld().spawnParticle(Particle.LAVA, player.getLocation().subtract(0, 1, 0), 3, 0.2, 0.1, 0.2, 0.05);
+            shakeScreen(player);
+        }
+    }
+
+    private void shakeScreen(Player player) {
+        Vector knockback = new Vector((Math.random() - 0.5) * 0.2, 0, (Math.random() - 0.5) * 0.2);
+        player.setVelocity(player.getVelocity().add(knockback));
     }
 }
