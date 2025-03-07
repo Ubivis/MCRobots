@@ -1,0 +1,33 @@
+plugins {
+    id 'java'
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'Paper'
+        url = 'https://repo.papermc.io/repository/maven-public/'
+    }
+}
+
+dependencies {
+    implementation 'io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT'
+}
+
+// Plugin.yml automatisch generieren
+processResources {
+    filesMatching('plugin.yml') {
+        expand(
+                'name': 'RobotAddOn',
+                'version': '1.0.0',
+                'main': 'com.yourpackage.RobotAddOn',
+                'api-version': '1.21'
+        )
+    }
+}
