@@ -11,11 +11,18 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerToggleFlightEvent;
 import org.bukkit.event.block.Action;
+import org.bukkit.plugin.java.JavaPlugin;
+
 import java.util.HashMap;
 import java.util.UUID;
 
 public class WeaponSelectionListener implements Listener {
     private final HashMap<UUID, RobotWeaponType> playerWeapons = new HashMap<>();
+    private final JavaPlugin plugin;
+
+    public WeaponSelectionListener(JavaPlugin plugin) {
+        this.plugin = plugin;
+    }
 
     @EventHandler
     public void onRightClick(PlayerInteractEvent event) {
@@ -45,7 +52,7 @@ public class WeaponSelectionListener implements Listener {
 
         switch (selectedWeapon) {
             case MACHINE_GUN:
-                MachineGunWeapon.fire(player);
+                MachineGunWeapon.fire(player, plugin); // Pass plugin instance
                 player.sendMessage(ChatColor.RED + "Firing Machine Gun!");
                 break;
             case EXPLOSIVE_CANNON:

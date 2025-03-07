@@ -1,5 +1,6 @@
 package com.ubivismedia.robots.weapons;
 
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
@@ -9,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class LaserBeamWeapon {
     private static final double RANGE = 20.0;
@@ -21,9 +23,12 @@ public class LaserBeamWeapon {
 
         for (double i = 0; i < RANGE; i += 0.5) {
             Location point = start.clone().add(direction.clone().multiply(i));
-            world.spawnParticle(Particle.REDSTONE, point, 5, 0.1, 0.1, 0.1, 1);
+            world.spawnParticle(Particle.DUST, point, 5, 0.1, 0.1, 0.1, new Particle.DustOptions(Color.RED, 1.0f));
 
-            List<LivingEntity> entities = (List<LivingEntity>) world.getNearbyEntities(point, 0.5, 0.5, 0.5, e -> e instanceof LivingEntity && !e.equals(player));
+            List<LivingEntity> entities = world.getNearbyEntities(point, 0.5, 0.5, 0.5, e -> e instanceof LivingEntity && !e.equals(player))
+                    .stream()
+                    .map(e -> (LivingEntity) e)
+                    .collect(Collectors.toList());
 
             if (!entities.isEmpty()) {
                 LivingEntity target = entities.get(0);
