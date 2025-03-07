@@ -5,6 +5,7 @@ import com.ubivismedia.robots.weapons.MachineGunWeapon;
 import com.ubivismedia.robots.weapons.ExplosiveCannonWeapon;
 import com.ubivismedia.robots.weapons.LaserBeamWeapon;
 import com.ubivismedia.robots.weapons.RocketLauncherWeapon;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -13,6 +14,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerToggleFlightEvent;
 import org.bukkit.event.block.Action;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -23,6 +25,7 @@ public class WeaponSelectionListener implements Listener {
 
     public WeaponSelectionListener(JavaPlugin plugin) {
         this.plugin = plugin;
+        startWeaponHUD();
     }
 
     @EventHandler
@@ -53,7 +56,7 @@ public class WeaponSelectionListener implements Listener {
 
         switch (selectedWeapon) {
             case MACHINE_GUN:
-                MachineGunWeapon.fire(player, plugin); // Pass plugin instance
+                MachineGunWeapon.fire(player, plugin);
                 player.sendMessage(ChatColor.RED + "Firing Machine Gun!");
                 break;
             case EXPLOSIVE_CANNON:
@@ -71,5 +74,18 @@ public class WeaponSelectionListener implements Listener {
         }
 
         event.setCancelled(true); // Prevent unintended jumping
+    }
+
+    // HUD update task
+    private void startWeaponHUD() {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    RobotWeaponType weapon = getPlayerWeapon(player);
+                    player.sendActionBar(ChatColor.GOLD + "Current Weapon: " + ChatColor.YELLOW + weapon.name().replace("_", " "));
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 20L); // Update every second
     }
 }
