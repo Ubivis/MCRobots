@@ -9,10 +9,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.event.player.PlayerToggleFlightEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.block.Action;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.EntityType;
 import org.bukkit.util.Vector;
+import org.bukkit.Material;
 import java.util.*;
 
 public class RobotManager {
@@ -32,6 +34,33 @@ public class RobotManager {
     public void removeBlock(Block block) {
         robotBlocks.remove(block.getLocation());
     }
+
+    private void moveBlock(Location oldLoc, Location newLoc) {
+        Block oldBlock = oldLoc.getWorld().getBlockAt(oldLoc);
+        Block newBlock = newLoc.getWorld().getBlockAt(newLoc);
+
+        if (newBlock.getType() == Material.AIR) { // Nur verschieben, wenn das Feld leer ist
+            newBlock.setType(oldBlock.getType());
+            oldBlock.setType(Material.AIR);
+
+            robotBlocks.remove(oldLoc);
+            robotBlocks.add(newLoc);
+        }
+    }
+
+
+    public void moveJoint(Player player) {
+        for (Location loc : new HashSet<>(robotBlocks)) {
+            Block block = loc.getWorld().getBlockAt(loc);
+            if (block.getType() == Material.PISTON) {
+                Location newLoc = loc.clone().add(0, 1, 0); // Bewege es eine Blockhöhe nach oben
+                moveBlock(loc, newLoc);
+                player.sendMessage(ChatColor.YELLOW + "Robot joint moved!");
+            }
+        }
+    }
+
+
 
     public boolean isPartOfRobot(Block block) {
         return robotBlocks.contains(block.getLocation());
@@ -117,6 +146,33 @@ public class RobotManager {
             player.sendMessage(ChatColor.RED + "You have exited your robot.");
         }
     }
+
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent event) {
+        Player player = event.getPlayer();
+        if (playersInRobot.containsKey(player.getUniqueId())) {
+            moveRobotJoints(player);
+        }
+    }
+
+    private void moveRobotJoints(Player player) {
+        for (Location loc : new HashSet<>(robotBlocks)) {
+            Block block = loc.getWorld().getBlockAt(loc);
+            if (block.getType() == Material.PISTON) {
+                Location newLoc = loc.clone().add(0, 1, 0);
+
+                // Überprüfe, ob das Gelenk eine maximale Position erreicht hat
+                if (newLoc.getBlockY() > loc.getBlockY() + 2) {
+                    continue; // Verhindert unendliches Aufsteigen
+                }
+
+                moveBlock(loc, newLoc);
+                player.sendMessage(ChatColor.YELLOW + "Robot joint moved!");
+            }
+        }
+    }
+
+
 
     @EventHandler
     public void onPlayerJump(PlayerToggleFlightEvent event) {
