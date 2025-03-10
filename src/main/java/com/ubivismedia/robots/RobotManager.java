@@ -7,23 +7,21 @@ import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.event.player.PlayerToggleFlightEvent;
 import org.bukkit.event.block.Action;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.EntityType;
 import org.bukkit.util.Vector;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.HashMap;
-import java.util.UUID;
-
+import java.util.*;
 
 public class RobotManager {
     private final Set<Location> robotBlocks = new HashSet<>();
-    private final Set<Player> playersInRobot = new HashSet<>();
-    private final HashMap<UUID, Long> lastShotTime = new HashMap<>();
+    private final Map<UUID, Boolean> playersInRobot = new HashMap<>();
+    private final Map<UUID, Integer> robotHealth = new HashMap<>();
+    private final Map<UUID, Integer> robotEnergy = new HashMap<>();
+    private final Map<UUID, Integer> robotAmmo = new HashMap<>();
+    private final Map<UUID, Long> lastShotTime = new HashMap<>();
     private final long shotCooldown = 2000;
 
     public void addBlock(Block block, Player player) {
@@ -44,7 +42,7 @@ public class RobotManager {
     }
 
     public boolean isPlayerInsideRobot(Player player) {
-        return playersInRobot.contains(player);
+        return playersInRobot.containsKey(player.getUniqueId());
     }
 
     public boolean isRobotComplete() {
@@ -59,32 +57,51 @@ public class RobotManager {
                 jointCount++;
             }
         }
-
         return cockpitCount >= 1 && jointCount >= 2;
     }
 
     private void checkAndNotifyRobotCompletion(Player player) {
         if (isRobotComplete()) {
-            player.sendMessage("§aYour robot is now complete!");
+            player.sendMessage(ChatColor.GREEN + "Your robot is now complete!");
         }
     }
 
     public void enterRobot(Player player) {
         if (isRobotComplete()) {
             player.sendMessage(ChatColor.YELLOW + "You have entered your robot. Use WASD to move, sneak (shift) to exit and jump to fire!");
-            playersInRobot.add(player);
+            playersInRobot.put(player.getUniqueId(), true);
             player.setAllowFlight(true);
         } else {
             player.sendMessage(ChatColor.RED + "Your robot is not fully assembled yet!");
         }
     }
 
-    // Allows entering the robot by right-clicking the cockpit
+    public void exitRobot(Player player) {
+        playersInRobot.remove(player.getUniqueId());
+        player.setAllowFlight(false);
+    }
+
+    public boolean isPlayerInRobot(Player player) {
+        return playersInRobot.getOrDefault(player.getUniqueId(), false);
+    }
+
+    public int getRobotHealth(Player player) {
+        return robotHealth.getOrDefault(player.getUniqueId(), 100);
+    }
+
+    public int getRobotEnergy(Player player) {
+        return robotEnergy.getOrDefault(player.getUniqueId(), 100);
+    }
+
+    public int getRobotAmmo(Player player) {
+        return robotAmmo.getOrDefault(player.getUniqueId(), 50);
+    }
+
     @EventHandler
     public void onCockpitRightClick(PlayerInteractEvent event) {
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
             Block clickedBlock = event.getClickedBlock();
-            if (clickedBlock != null && clickedBlock.getType().toString().equals("IRON_BLOCK")) { // Temporary cockpit check
+            if (clickedBlock != null && clickedBlock.getType().toString().equals("IRON_BLOCK")) {
                 Player player = event.getPlayer();
                 enterRobot(player);
                 event.setCancelled(true);
@@ -92,22 +109,19 @@ public class RobotManager {
         }
     }
 
-    // Allows the player to exit the robot by sneaking (Shift)
     @EventHandler
     public void onPlayerSneak(PlayerToggleSneakEvent event) {
         Player player = event.getPlayer();
-        if (playersInRobot.contains(player) && event.isSneaking()) {
-            playersInRobot.remove(player);
-            player.setAllowFlight(false);
+        if (playersInRobot.containsKey(player.getUniqueId()) && event.isSneaking()) {
+            exitRobot(player);
             player.sendMessage(ChatColor.RED + "You have exited your robot.");
         }
     }
 
-    // Allows the robot to fire projectiles when the player jumps, with a cooldown
     @EventHandler
     public void onPlayerJump(PlayerToggleFlightEvent event) {
         Player player = event.getPlayer();
-        if (playersInRobot.contains(player)) {
+        if (playersInRobot.containsKey(player.getUniqueId())) {
             long currentTime = System.currentTimeMillis();
             long lastShot = lastShotTime.getOrDefault(player.getUniqueId(), 0L);
 

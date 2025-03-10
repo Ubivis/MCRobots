@@ -14,6 +14,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.block.Action;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 public class RobotBlockListener implements Listener {
@@ -24,6 +25,7 @@ public class RobotBlockListener implements Listener {
     public RobotBlockListener(JavaPlugin plugin, RobotManager robotManager) {
         this.plugin = plugin;
         this.robotManager = robotManager;
+        startHUDUpdateTask();
     }
 
     @EventHandler
@@ -98,7 +100,7 @@ public class RobotBlockListener implements Listener {
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
-        if (robotManager.isPlayerInsideRobot(player)) {  // FIX: Ensure this method exists in RobotManager
+        if (robotManager.isPlayerInRobot(player)) {
             Vector direction = player.getLocation().getDirection().setY(0).normalize().multiply(0.5);
             player.setVelocity(direction);
             player.getWorld().playSound(player.getLocation(), Sound.ENTITY_IRON_GOLEM_STEP, 0.5f, 1.0f);
@@ -111,5 +113,22 @@ public class RobotBlockListener implements Listener {
     private void shakeScreen(Player player) {
         Vector knockback = new Vector((Math.random() - 0.5) * 0.2, 0, (Math.random() - 0.5) * 0.2);
         player.setVelocity(player.getVelocity().add(knockback));
+    }
+
+    private void startHUDUpdateTask() {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (Player player : plugin.getServer().getOnlinePlayers()) {
+                    if (robotManager.isPlayerInRobot(player)) {
+                        int health = robotManager.getRobotHealth(player);
+                        int energy = robotManager.getRobotEnergy(player);
+                        int ammo = robotManager.getRobotAmmo(player);
+
+                        player.sendActionBar("§b[ROBOT HUD] §aHealth: " + health + " ❤  §eEnergy: " + energy + " ⚡  §cAmmo: " + ammo + " ✦");
+                    }
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 20L); // Update every second
     }
 }
