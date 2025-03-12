@@ -1,6 +1,6 @@
 name: RobotAddOn
 version: 1.0.0
-main: com.yourpackage.RobotAddOn
+main: com.ubivismedia.RobotAddOn
 api-version: 1.21
-authors: [YourName]
+authors: [UbivisMedia]
 description: A Paper plugin for controllable combat robots

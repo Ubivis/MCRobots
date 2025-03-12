@@ -39,7 +39,7 @@ public class RobotManager {
         Block oldBlock = oldLoc.getWorld().getBlockAt(oldLoc);
         Block newBlock = newLoc.getWorld().getBlockAt(newLoc);
 
-        if (newBlock.getType() == Material.AIR) { // Nur verschieben, wenn das Feld leer ist
+        if (newBlock.getType() == Material.AIR) {
             newBlock.setType(oldBlock.getType());
             oldBlock.setType(Material.AIR);
 
@@ -53,7 +53,7 @@ public class RobotManager {
         for (Location loc : new HashSet<>(robotBlocks)) {
             Block block = loc.getWorld().getBlockAt(loc);
             if (block.getType() == Material.PISTON) {
-                Location newLoc = loc.clone().add(0, 1, 0); // Bewege es eine Blockhöhe nach oben
+                Location newLoc = loc.clone().add(0, 1, 0);
                 moveBlock(loc, newLoc);
                 player.sendMessage(ChatColor.YELLOW + "Robot joint moved!");
             }
@@ -161,9 +161,9 @@ public class RobotManager {
             if (block.getType() == Material.PISTON) {
                 Location newLoc = loc.clone().add(0, 1, 0);
 
-                // Überprüfe, ob das Gelenk eine maximale Position erreicht hat
+
                 if (newLoc.getBlockY() > loc.getBlockY() + 2) {
-                    continue; // Verhindert unendliches Aufsteigen
+                    continue;
                 }
 
                 moveBlock(loc, newLoc);
